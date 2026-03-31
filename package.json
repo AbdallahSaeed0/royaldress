@@ -1,0 +1,7 @@
+{
+  "name": "royal-dress",
+  "private": true,
+  "scripts": {
+    "start": "npx --yes serve . -l 8080"
+  }
+}

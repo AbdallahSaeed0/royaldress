@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dress Rental System Demo</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true">◇</span>
+        <h1>Dress Rental System Demo</h1>
+      </div>
+      <p class="tagline">Check availability, add bookings, and view current reservations.</p>
+      <p class="header-dev-hint client-only"><span>For setup: add <code>?dev=1</code> to the address bar to show technical connection options.</span></p>
+    </div>
+  </header>
+
+  <main class="container main-grid">
+    <!-- A) Search & Availability -->
+    <section class="card" aria-labelledby="check-title">
+      <h2 id="check-title">Search &amp; availability</h2>
+      <p class="card-desc">Enter a dress code and rental dates to see if the dress is free.</p>
+      <form id="check-form" class="form-grid" novalidate>
+        <label class="field">
+          <span class="label">Dress code</span>
+          <input type="text" id="check-code" name="code" placeholder="e.g. D100" autocomplete="off" required />
+        </label>
+        <label class="field">
+          <span class="label">From date</span>
+          <input type="date" id="check-from" name="from" required />
+        </label>
+        <label class="field">
+          <span class="label">To date</span>
+          <input type="date" id="check-to" name="to" required />
+        </label>
+        <div class="field-actions">
+          <button type="submit" class="btn btn-primary" id="check-btn">
+            <span class="btn-text">Check availability</span>
+            <span class="btn-loader" hidden aria-hidden="true"></span>
+          </button>
+        </div>
+      </form>
+      <div id="check-result" class="result-panel" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- B) Add Booking -->
+    <section class="card" aria-labelledby="book-title">
+      <h2 id="book-title">New booking</h2>
+      <p class="card-desc">Submit a new rental. The list below updates after a successful booking.</p>
+      <form id="book-form" class="form-grid" novalidate>
+        <label class="field">
+          <span class="label">Dress code</span>
+          <input type="text" id="book-code" name="code" placeholder="e.g. D100" autocomplete="off" required />
+        </label>
+        <label class="field field-span-2">
+          <span class="label">Customer name</span>
+          <input type="text" id="book-name" name="name" placeholder="Full name" autocomplete="name" required />
+        </label>
+        <label class="field">
+          <span class="label">From date</span>
+          <input type="date" id="book-from" name="from" required />
+        </label>
+        <label class="field">
+          <span class="label">To date</span>
+          <input type="date" id="book-to" name="to" required />
+        </label>
+        <div class="field-actions">
+          <button type="submit" class="btn btn-accent" id="book-btn">
+            <span class="btn-text">Book now</span>
+            <span class="btn-loader" hidden aria-hidden="true"></span>
+          </button>
+        </div>
+      </form>
+      <div id="book-message" class="message-panel" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- C) Bookings list -->
+    <section class="card card-wide" aria-labelledby="list-title">
+      <div class="list-header">
+        <div>
+          <h2 id="list-title">All bookings</h2>
+          <p class="card-desc client-only">Up-to-date reservations. Use <strong>Refresh list</strong> if you edited the sheet elsewhere.</p>
+          <p class="card-desc dev-only">Loads from your Sheet URL; <strong>Load CSV</strong> and script URL below are for maintenance.</p>
+        </div>
+        <div class="list-header-actions">
+          <label class="field field-inline">
+            <span class="label">Filter by dress code</span>
+            <input type="text" id="filter-code" placeholder="e.g. D100 or leave empty" autocomplete="off" />
+          </label>
+          <button type="button" class="btn btn-primary btn-inline client-only" id="refresh-bookings-btn">
+            Refresh list
+          </button>
+        </div>
+      </div>
+
+      <div id="sync-status" class="sync-status" role="status" aria-live="polite"></div>
+
+      <div class="import-panel dev-only" aria-labelledby="import-title">
+        <h3 id="import-title" class="import-title">Import from online CSV</h3>
+        <p class="import-hint">
+          Read: paste your Sheet’s CSV export URL. Write: deploy <code>google-apps-script/Code.gs</code> (from your Sheet → Extensions → Apps Script), then paste the <strong>Web app</strong> URL below.
+          Serve this page over <strong>http(s)</strong>, not <code>file://</code>.
+        </p>
+        <form id="import-form" class="import-row">
+          <label class="field field-grow">
+            <span class="label">CSV file URL</span>
+            <input type="url" id="import-url" placeholder="https://…/bookings.csv" autocomplete="off" />
+          </label>
+          <button type="submit" class="btn btn-primary btn-inline" id="import-btn">
+            <span class="btn-text">Load CSV</span>
+            <span class="btn-loader" hidden aria-hidden="true"></span>
+          </button>
+        </form>
+        <label class="field field-grow append-url-field">
+          <span class="label">Apps Script URL (save new bookings)</span>
+          <input
+            type="url"
+            id="sheet-append-url"
+            placeholder="https://script.google.com/macros/s/.../exec"
+            autocomplete="off"
+          />
+          <span class="field-note">Must be <strong>script.google.com/…/exec</strong> from Apps Script → Deploy — not the same as the CSV link above. First sheet tab: columns code, from, to, name.</span>
+        </label>
+      </div>
+      <div id="bookings-empty" class="empty-state" hidden>
+        <p>No bookings match your filter.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="bookings-table" id="bookings-table">
+          <thead>
+            <tr>
+              <th scope="col">Dress code</th>
+              <th scope="col">Customer</th>
+              <th scope="col">From</th>
+              <th scope="col">To</th>
+            </tr>
+          </thead>
+          <tbody id="bookings-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p class="footer-client">Demo booking view — data is hosted online and updates on save or refresh.</p>
+      <p class="footer-dev dev-only"><code>?dev=1</code> — optional <code>?csv=…</code> overrides the default sheet URL in <code>app.js</code>.</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
